@@ -29,7 +29,7 @@ In recent years AI has proved to be a very useful tool in approaching a variety 
     * Limit scope to UK (but design for change in overall location to allow for reuse in different regions?)
 #### Statistically Uncertain Factors:
 * Weather patterns that will affect power generation dependent on allocated regions
-* Long term repair costs and degredation of efficiency
+* Long term repair costs and degradation of efficiency
 #### Maximisation goal:
 * Predicted Power generation
 #### Potential minimisation goal:
