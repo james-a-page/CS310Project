@@ -25,7 +25,7 @@ In recent years AI has proved to be a very useful tool in approaching a variety 
     * Wave/Marine
 * Location of allocations 
     * Research required to map out a dataset of applicable locations and survey data of past weather patterns to build a accurate model of weather over time
-    * Balancing the more profitable areas with high variance in weather/energy generation with more consistent areas - Exploitation vs Exploration
+    * Balancing the more profitable areas with high variance in weather/energy generation with more consistent areas
     * Limit scope to UK (but design for change in overall location to allow for reuse in different regions?)
 #### Statistically Uncertain Factors:
 * Weather patterns that will affect power generation dependent on allocated regions
