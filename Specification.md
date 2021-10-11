@@ -29,17 +29,11 @@ These are the core parts of the project which are required to have successfully 
 
 ## Methods
 
-### Research
-
-
-
-### Development
-
-- Git to version control, using a private GitHub repository to act as backup and cross device version control.
+To be completed
 
 ## Timetable
 
-
+To be completed
 
 ## Resources 
 
@@ -52,8 +46,14 @@ Sources:
 
 ## Risks
 
-- Data Loss
-  - Prevention - use of a private github repo to keep an online copy up to date, while regularly pulling updates to a laptop and pc to ensure multiple copies stored.
+The main risks this project will face are data loss and issues with falling behind schedule. In order to prevent and mitigate the problems caused by these risk we will take the following measures:
+
+- Data Backup:
+  - By using Git as a version control protocol for the project we can make use of GitHub's private repositories to keep a regularly updated backed up to a central online location.
+  - To avoid the unlikely case of losing access to the repository causing any issues we will also be pulling up to date versions of the code base and project documentation to at least 2 different computers (a personal Laptop and Desktop most regularly).
+- Time management:
+  - As part of this document the timetable will help build an expectation of where the project should be every week.
+  - Project management tools such as Kanban boards can be used to break down the tasks ensure regular progress is being made on the development.
 
 ## Ethical Considerations
 
