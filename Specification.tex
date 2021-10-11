@@ -1,19 +1,8 @@
 \documentclass[twoside]{article}
 
-\usepackage{blindtext} % Package to generate dummy text throughout this template 
-
-\usepackage[sc]{mathpazo} % Use the Palatino font
-\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
-\linespread{1.05} % Line spacing - Palatino needs more space between lines
-\usepackage{microtype} % Slightly tweak font spacing for aesthetics
-
-\usepackage[english]{babel} % Language hyphenation and typographical rules
-
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
 \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
 \usepackage{booktabs} % Horizontal rules in tables
-
-\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
 
 \usepackage{enumitem} % Customized lists
 \setlist[itemize]{noitemsep} % Make itemize lists more compact
@@ -22,18 +11,15 @@
 \renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
 \renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
 
-\usepackage{titlesec} % Allows customization of titles
-\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
-\renewcommand\thesubsection{\roman{subsection}} % roman numerals for subsections
-\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
-\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
 
 \usepackage{fancyhdr} % Headers and footers
 \pagestyle{fancy} % All pages have headers and footers
 \fancyhead{} % Blank out the default header
 \fancyfoot{} % Blank out the default footer
-\fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1} % Custom header text
 \fancyfoot[RO,LE]{\thepage} % Custom footer text
+\font\myfont=cmr12 at 25pt
+\font\myfon=cmr12 at 20pt
 
 \usepackage{titling} % Customizing the title section
 
@@ -47,22 +33,9 @@
 
 \pretitle{\begin{center}\Huge\bfseries} % Article title formatting
 \posttitle{\end{center}} % Article title closing formatting
-\title{Article Title} % Article title
-\author{%
-\textsc{John Smith}\thanks{A thank you or further information} \\[1ex] % Your name
-\normalsize University of California \\ % Your institution
-\normalsize \href{mailto:john@smith.com}{john@smith.com} % Your email address
-%\and % Uncomment if 2 authors are required, duplicate these 4 lines if more
-%\textsc{Jane Smith}\thanks{Corresponding author} \\[1ex] % Second author's name
-%\normalsize University of Utah \\ % Second author's institution
-%\normalsize \href{mailto:jane@smith.com}{jane@smith.com} % Second author's email address
-}
-\date{\today} % Leave empty to omit a date
-\renewcommand{\maketitlehookd}{%
-\begin{abstract}
-\noindent \blindtext % Dummy abstract text - replace \blindtext with your abstract text
-\end{abstract}
-}
+\title{\myfont CS310 Project Specification:\\ \myfon Efficient Allocation of Renewable Energy Sources Under Uncertainty Across the UK} % Article title
+\author{James Page}
+
 
 %----------------------------------------------------------------------------------------
 
@@ -71,90 +44,67 @@
 % Print the title
 \maketitle
 
-%----------------------------------------------------------------------------------------
-%	ARTICLE CONTENTS
-%----------------------------------------------------------------------------------------
+\section{Problem}
+One of the most substantial threats to the modern world is the climate crisis. With a need for new more renewable technologies and energy being one of the key paths forward, the problem becomes where best to site these new energy sources. With so many possible locations to choose from and a finite budget the automation of these decisions would be an obvious help.\\
+\noindent
+AI is a very useful tool for tackling optimisation problems where the number of variables creates a number of combinations too big for any real minimisation or maximisation effort to made. As such it is the perfect tool to apply to finding an efficient way of investing a budget in new renewable energy sources. As discussed, with such a wide range of varying locations across the country  the choices of where to allocate funds quickly becomes a complicated one, especially when considering the statistically uncertain factors such as maintenance and most importantly for renewable energy, weather. \\
+\noindent
+When considering a choice location and of energy source there are a range of factors to consider in evaluating the value of the decision. The costs of a choice will be impacted by the setup and connection costs, the initial production cost and the cost of repairs, meanwhile the output of a location will vary depending on the weather of any given day. This exposes the other area of the problem, the need to consider the statistical uncertainty of events such as faults requiring repair and "profitable" weather patterns occurring when evaluating a choice.
 
-\section{Introduction}
+%------------------------------------------------
 
-\lettrine[nindent=0em,lines=3]{L} orem ipsum dolor sit amet, consectetur adipiscing elit.
-\blindtext % Dummy text
+\section{Objectives}
 
-\blindtext % Dummy text
+By the end of the development stage of this project a list of objectives should be met in order to determine the project a success. All of the below should be included to achieve a solution to the problem defined above, as such we expect the final program to meet the following:
+\subsection{Core Objectives}
+\begin{enumerate}
+    \item A "performance" function will be able to evaluate a location for a given energy source type, using uncertain variables such as wind speed, sun light time and sun intensity.
+    \item A "cost" function will evaluate a cost of choosing a location according to the production cost of the energy source, transportation and connection costs for a given location, and an evaluation of repair costs against the chance of a fault occurring.
+    \item A "solver" function will implement a yet undetermined optimisation problem algorithm suited to an allocation problem of this type, and will make use of the "cost" and "performance" functions as heuristic values.
+    \item The program be able to access a  data set of locations, curated to be viable for allocation.
+    \item Given an input budget value the program will return the user a set of allocations chosen as it deems to be the most performant based on the performance function defined in objective 1.
+    \item The program will run under a fixed time condition such that the user should not be waiting more than 30 seconds for a result.
+\end{enumerate}
 
+These are the core parts of the project which are required to have successfully implemented the goal of this project. However these objectives have some areas for expansion which could potentially be investigated given the core aspects are implemented successfully with additional time to spare.
+\subsection{Potential Areas of Expansion}
+\begin{enumerate}
+    \item Extend the "performance" function to consider long term trends in the weather to all for the program to make allocations based on future worth.
+    \item Evaluate more than one of the most relevant algorithms, benchmarking performance on time taken, accuracy, and consistency.
+    \item Extend the location set by allowing users to input their own location data set, allowing the program to be used in different countries or more specific areas in the future.
+\end{enumerate}
 %------------------------------------------------
 
 \section{Methods}
 
-Maecenas sed ultricies felis. Sed imperdiet dictum arcu a egestas. 
+%------------------------------------------------
+
+\section{Timetable}
+
+%------------------------------------------------
+
+\section{Resources \& Risks}
+
+The main risks this project will face are data loss and issues with falling behind schedule. In order to prevent and mitigate the problems caused by these risk we will take the following measures:
 \begin{itemize}
-\item Donec dolor arcu, rutrum id molestie in, viverra sed diam
-\item Curabitur feugiat
-\item turpis sed auctor facilisis
-\item arcu eros accumsan lorem, at posuere mi diam sit amet tortor
-\item Fusce fermentum, mi sit amet euismod rutrum
-\item sem lorem molestie diam, iaculis aliquet sapien tortor non nisi
-\item Pellentesque bibendum pretium aliquet
+    \item Data Backup:
+    \begin{itemize}
+        \item By using Git as a version control protocol for the project we can make use of GitHub's private repositories to keep a regularly updated backed up to a central online location.
+        \item To avoid the unlikely case of losing access to the repository causing any issues we will also be pulling up to date versions of the code base and project documentation to at least 2 different computers (a personal Laptop and Desktop most regularly).
+    \end{itemize}
+    \item Time management:
+    \begin{itemize}
+        \item As part of this document the timetable will help build an expectation of where the project should be every week.
+        \item Project management tools such as Kanban boards can be used to break down the tasks ensure regular progress is being made on the development.
+    \end{itemize}
 \end{itemize}
-\blindtext % Dummy text
-
-Text requiring further explanation\footnote{Example footnote}.
 
 %------------------------------------------------
 
-\section{Results}
+\section{Ethical Considerations}
 
-\begin{table}
-\caption{Example table}
-\centering
-\begin{tabular}{llr}
-\toprule
-\multicolumn{2}{c}{Name} \\
-\cmidrule(r){1-2}
-First name & Last Name & Grade \\
-\midrule
-John & Doe & $7.5$ \\
-Richard & Miles & $2$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\blindtext % Dummy text
-
-\begin{equation}
-\label{eq:emc}
-e = mc^2
-\end{equation}
-
-\blindtext % Dummy text
-
+As this project will be using publicly available information as sources and is isolated in the development and testing of the program there are not an ethical concerns to be raised at this time.
 %------------------------------------------------
 
-\section{Discussion}
-
-\subsection{Subsection One}
-
-A statement requiring citation \cite{Figueredo:2009dg}.
-\blindtext % Dummy text
-
-\subsection{Subsection Two}
-
-\blindtext % Dummy text
-
-%----------------------------------------------------------------------------------------
-%	REFERENCE LIST
-%----------------------------------------------------------------------------------------
-
-\begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
-
-\bibitem[Figueredo and Wolf, 2009]{Figueredo:2009dg}
-Figueredo, A.~J. and Wolf, P. S.~A. (2009).
-\newblock Assortative pairing and life history strategy - a cross-cultural
-  study.
-\newblock {\em Human Nature}, 20:317--330.
- 
-\end{thebibliography}
-
-%----------------------------------------------------------------------------------------
 
 \end{document}
