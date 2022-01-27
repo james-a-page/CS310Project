@@ -21,6 +21,12 @@ Initally starting with only wind options as data is most prevalent separate exte
 
 - National grid wind availabilty predictions, extract the unique BMU_Ids &#9745;
 - Build Dictionary of locations with ids as key - csv as ./locations.csv
+    - Inital results in 'initialLocations.csv'
+    - Then refined the BMUID list and locations to Onshore farms due to access to weather data, and removed ids where a farm name and location could not be found.
+    - We also added the capacity of each farm
+    - This took inital 194 locations down to 99 farms
+    -https://www.thewindpower.net/windfarm_en_1357_braes-of-doune.php acted as useful source for location info
+
 
 ### 2
 
