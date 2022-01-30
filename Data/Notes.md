@@ -38,6 +38,10 @@ Initally starting with only wind options as data is most prevalent separate exte
 GET https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/!!_____LOCATION HERE_____!!/2021-11-11/2021-11-11?unitGroup=uk&key=6FF9G8N2T2NZCSR2C2WPZ42QF&include=hours
 ```
 
+- Ran into unexpected issues which meant a reduced dataset taking from 99 to 55 locations, upon discovery that not all locations had 'actual generation' data that could be sourced, and the balancing data which was tried instead was not useful as a metric as it was based on predictions of what the output would be rather than the actual generation.
+
+- There is a potential limitation in this study also brought up in the fact that some generators have capacity to limit generation based on demand. Due to wind being inconsistent anyway from what we have read it it appears that the are mostly allowed to run at what ever capacity is possible so it should not interfer with this investigation.
+
 ### 3
 
 - 
