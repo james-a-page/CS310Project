@@ -44,4 +44,4 @@ GET https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/t
 
 ### 3
 
-- 
+- Accuracy not as good as expected, however is understandable as differetn aspects have introduced some uncertainty and thus the achieved accuracy is acceptable as long as handled and disscssed appropritately.
