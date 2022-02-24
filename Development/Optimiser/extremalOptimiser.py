@@ -1,10 +1,11 @@
+from string import printable
 import model as pred
 import pandas as pd
 import numpy as np
 import math
 
 global allocation_to_location
-global location_to_expected_weather
+# global location_to_expected_weather
 
 class Chromosome:
     def __init__(self,size,budget):
@@ -33,22 +34,41 @@ class Generation:
         return Generation(self.genNumber+1,self.popSize,(self.geneCount,self.budget),newPop)
 
 def fitness(allocation,model):
+    value = 0
     for i,count in enumerate(allocation):
-        print(allocation_to_location.iloc[i].BMU_ID)
-        # pred.predict(,model)
-    
-    return 0
+        if count > 0:
+            # print(allocation_to_location.iloc[i].BMU_ID)
+            dataset = pd.read_csv('../../Data/TimeSeriesOfLocations/'+(allocation_to_location.iloc[i].BMU_ID).replace('-','_')+'.csv',parse_dates=["datetime"])
+            distributions = {}
+            for feature in ['temp','dew','humidity','precip','windgust','windspeed','sealevelpressure','cloudcover','visibility']:
+                #1 - Smooth Data
+                featureData = dataset[[feature]]
+                smoothedData = (featureData.ewm(alpha=0.1)).mean()
+                #2 - Take Mean & std of each smoothed weather feature
+                #3 - Sample _ number of data points from guassian distribution defined by step 2 (for each feature)
+                distributions[feature] = np.random.normal(smoothedData.mean(),smoothedData.std(),10000)
+            #4 - Predict output over those points.
+            predictions = pred.predict(pd.DataFrame(distributions),model)
+            value += round(predictions.mean(),5) * count
+        # F1 = mean of all allocations
+        # F2 = Lower quartile of all locations
+        # F3 = ?
+        # print(np.quantile(predictions,0.25))
+        # print(np.quantile(predictions,0.5))
+        # print(np.quantile(predictions,0.75))
+        # pred.predict([],model) 
+    return value
 
 #Based upon: https://www.sciencedirect.com/science/article/pii/S0020025515007276
 def main():
     global allocation_to_location
-    global location_to_expected_weather
+    # global location_to_expected_weather
     allocation_to_location = pd.read_csv('../../Data//locations.csv').drop('capacity',axis=1)
     predictor = pred.initaliseModel()
-    chromosomeParameters = (5,100)
-    gen0 = Generation(0,10,chromosomeParameters,predictor)
+    chromosomeParameters = (56,120)
+    gen0 = Generation(0,1,chromosomeParameters,predictor)
     print(gen0.getPopulation())
-    fitness(gen0.getPopulation()[0],predictor)
+    print(fitness(gen0.getPopulation()[0],predictor))
 
 
 

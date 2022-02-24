@@ -16,7 +16,7 @@ import numpy as np
 
 def initaliseModel():
     dataset = pd.read_csv('../../Data/CurrentDataset.csv')
-    dataset['wgust'].replace(np.NaN, 0, inplace=True)
+    dataset['windgust'].replace(np.NaN, 0, inplace=True)
     dataset = dataset.dropna().drop('Unnamed: 0',axis=1)
     dataset = dataset[dataset['loadFactor']<=1]
     y = dataset['loadFactor']
@@ -30,7 +30,7 @@ def initaliseModel():
         StackingEstimator(estimator=AdaBoostRegressor(learning_rate=0.001, loss="linear", n_estimators=100)),
         SelectPercentile(score_func=f_regression, percentile=28),
         StackingEstimator(estimator=LinearSVR(C=0.5, dual=False, epsilon=0.0001, loss="squared_epsilon_insensitive", tol=0.01)),
-        StackingEstimator(estimator=GradientBoostingRegressor(alpha=0.95, learning_rate=0.01, loss="lad", max_depth=7, max_features=1.0, min_samples_leaf=9, min_samples_split=10, n_estimators=100, subsample=0.5)),
+        StackingEstimator(estimator=GradientBoostingRegressor(alpha=0.95, learning_rate=0.01, loss="absolute_error", max_depth=7, max_features=1.0, min_samples_leaf=9, min_samples_split=10, n_estimators=100, subsample=0.5)),
         StackingEstimator(estimator=LinearSVR(C=20.0, dual=True, epsilon=0.001, loss="epsilon_insensitive", tol=1e-05)),
         KNeighborsRegressor(n_neighbors=61, p=2, weights="distance")
     )

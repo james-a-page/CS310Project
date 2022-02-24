@@ -1,4 +1,4 @@
-,BMUID,temp,wspd,wgust,sealevelpressure,visibility,cloudcover,precip,dew,humidity,loadFactor
+,BMUID,temp,windspd,windgust,sealevelpressure,visibility,cloudcover,precip,dew,humidity,loadFactor
 0,ABRTW-1,5.5,11.6,15.5,1008.1,12.1,86.3,0.0,3.9,89.4,0.6976666666666667
 1,ABRTW-1,4.1,22.2,30.8,969.9,3.8,86.2,0.0,2.5,89.1,0.667611111111111
 2,ABRTW-1,8.6,4.4,6.0,1028.8,39.0,38.6,0.0,1.6,61.48,0.07144444444444445
