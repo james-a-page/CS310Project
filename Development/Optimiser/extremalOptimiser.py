@@ -32,39 +32,45 @@ class Chromosome:
         #Define Inital values
         total = 0
         predictionList = np.array([])
-
+        # save = pd.DataFrame(data=[],columns=['BMU_ID','predOutput'])
+        precomputedPred = pd.read_csv('../../Data/PreComputedPredictions.csv')
         #For each location, model the expected weather, sample that distribution, predict outputs based on that sample
         for i, count in enumerate(self.genes):
             np.random.seed(0)
             if count > 0:
-                dataset = pd.read_csv(
-                    '../../Data/TimeSeriesOfLocations/' +
-                    (allocation_to_location.iloc[i].BMU_ID).replace('-', '_') +
-                    '.csv',
-                    parse_dates=["datetime"])
-                distributions = {}
-                for feature in [
-                        'temp', 'dew', 'humidity', 'precip', 'windgust',
-                        'windspeed', 'sealevelpressure', 'cloudcover',
-                        'visibility'
-                ]:
-                    #1 - Smooth Data
-                    featureData = dataset[[feature]]
-                    smoothedData = (featureData.ewm(alpha=0.5)).mean()
-                    #2 - Take Mean & std of each smoothed weather feature
-                    #3 - Sample 1000 number of data points from normal distribution defined by step 2 (for each feature)
-                    distributions[feature] = np.random.normal(
-                        smoothedData.mean(), smoothedData.std(), 1000)
-                #4 - Predict output over those points.
-                predictions = pred.predict(pd.DataFrame(distributions), model)
+
+                #Uncomment to recompute predictions at run time -- will be very slow on large runs
+                # dataset = pd.read_csv(
+                #     '../../Data/TimeSeriesOfLocations/' +
+                #     (allocation_to_location.iloc[i].BMU_ID).replace('-', '_') +
+                #     '.csv',
+                #     parse_dates=["datetime"])
+                # distributions = {}
+                # for feature in [
+                #         'temp', 'dew', 'humidity', 'precip', 'windgust',
+                #         'windspeed', 'sealevelpressure', 'cloudcover',
+                #         'visibility'
+                # ]:
+                #     #1 - Smooth Data
+                #     featureData = dataset[[feature]]
+                #     smoothedData = (featureData.ewm(alpha=0.5)).mean()
+                #     #2 - Take Mean & std of each smoothed weather feature
+                #     #3 - Sample 1000 number of data points from normal distribution defined by step 2 (for each feature)
+                #     distributions[feature] = np.random.normal(
+                #         smoothedData.mean(), smoothedData.std(), 1000)
+                # #4 - Predict output over those points.
+                # predictions = pred.predict(pd.DataFrame(distributions), model)
+                # save = pd.concat([save,pd.DataFrame([(allocation_to_location.iloc[i].BMU_ID,x) for x in predictions],columns=['BMU_ID','predOutput'])])
+
+                #Load precomputed predictions to speed up processing.
+                predictions = ((precomputedPred.loc[precomputedPred['BMU_ID'] == allocation_to_location.iloc[i].BMU_ID]).predOutput).array
                 for j in range(count):
                     predictionList = np.append(predictionList, (predictions))
-                predictions.mean()  #Mean of all predictions in this location
-                total += predictions.mean() * count
+
 
         # F1 = mean of all allocations (maxmise)
         #Total predicted output of this allocation as 'Load factor' percentage (% of total capacity allocated)
-        meanPredOutput = total / sum(self.genes)
+        meanPredOutput = predictionList.mean() #total / sum(self.genes)
         #F1.5 - Std of predictions (minimise -> * -1)
         deviationOutput = -1 * predictionList.std()
         # F2 = Lower quartile of all locations
@@ -72,6 +78,7 @@ class Chromosome:
         # F3 = Min?
         minOutput = predictionList.min()
         #Returns Objective (F1,F2)
+        # save.to_csv('../../Data/PreComputedPredictions.csv')
         return (meanPredOutput, deviationOutput,lowerQuartOutput)
 
 
@@ -160,7 +167,7 @@ def main():
         'capacity', axis=1)
     predictor = pred.initaliseModel()
     chromosomeParameters = (56, 500)
-    gen0 = Generation(0, 200, chromosomeParameters, predictor)
+    gen0 = Generation(0, 100, chromosomeParameters, predictor)
     gen0.getOffspring()
 
 
