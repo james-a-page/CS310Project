@@ -1,20 +1,11 @@
-from audioop import reverse
-from random import random, seed
-from re import I
-from string import printable
-from turtle import color
-
-from sklearn.neural_network import MLPRegressor
 import model as pred
 import pandas as pd
 import numpy as np
 import math
 from scipy.stats import iqr
-from matplotlib import projections, pyplot as plt
-import random
-
+from matplotlib import pyplot as plt
+import sys
 global allocation_to_location
-# global location_to_expected_weather
 
 
 class Chromosome:
@@ -37,7 +28,7 @@ class Chromosome:
 
         #Check doesn't break constraints
         if sum(self.genes) > self.budget:
-            return (0, -1, 0, 0)
+            return (0, -1, 0, 0, 0)
 
         #Define Inital values
         predictionList = np.array([])
@@ -47,7 +38,6 @@ class Chromosome:
         for i, count in enumerate(self.genes):
 
             if count > 0:
-
                 #Uncomment to recompute predictions at run time -- will be very slow on large runs
                 # dataset = pd.read_csv(
                 #     '../../Data/TimeSeriesOfLocations/' +
@@ -72,7 +62,9 @@ class Chromosome:
                 # save = pd.concat([save,pd.DataFrame([(allocation_to_location.iloc[i].BMU_ID,x) for x in predictions],columns=['BMU_ID','predOutput'])])
 
                 #Load precomputed predictions to speed up processing.
-                predictions = ((precomputedPred.loc[precomputedPred['BMU_ID'] == allocation_to_location.iloc[i].BMU_ID]).predOutput).array
+                predictions = ((precomputedPred.loc[
+                    precomputedPred['BMU_ID'] ==
+                    allocation_to_location.iloc[i].BMU_ID]).predOutput).array
                 for j in range(count):
                     predictionList = np.append(predictionList, (predictions))
 
@@ -81,17 +73,24 @@ class Chromosome:
         try:
             meanPredOutput = predictionList.mean()  #total / sum(self.genes)
         except:
-            return(0,-1,0,0)
-        # F2 = Lower quartile of all locations
-        outputIQR = -1 * iqr(predictionList)
+            return (0, -1, 0, 0, 0)
 
-        #F3 - Std of predictions (minimise -> * -1)
-        deviationOutput = -1 * predictionList.std()
+        # F2 = negative variance of allocations (so we can minimise the variance)
+        varianceObj = -1 * np.var(predictionList)
 
-        #Returns Objective (F1,F2)
+        #F3 = Maximum output
+        maxOutputObj = predictionList.max()
+
+        #F4 = Minimum output
+        minOutputObj = predictionList.min()
+
+        #F5 = Amount of budget used (we want to be as close to maximal budget use without going over budget)
+        budgetUse = sum(self.genes)
+
+        #Returns Objective (F1,F2,F3,F4,F5)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
-        return (meanPredOutput, -1 * np.var(predictionList), deviationOutput,
-                outputIQR)
+        return (meanPredOutput, varianceObj, maxOutputObj, minOutputObj,
+                budgetUse)
 
 
 class Generation:
@@ -101,12 +100,15 @@ class Generation:
                  size,
                  parameters,
                  fitnessModel,
-                 mutationRate=0.1,
+                 mutationRate=0.2,
+                 crossoverRate=0.7,
                  population=[]):
         self.genNumber = genNumber
         self.popSize = size
         self.geneCount, self.budget = parameters
         self.fitnessModel = fitnessModel
+        self.mutationRate = mutationRate
+        self.crossoverRate = crossoverRate
         if population:
             self.population = population
         else:
@@ -124,12 +126,11 @@ class Generation:
     #https://link.springer.com/content/pdf/10.1007%2F978-1-4614-6940-7.pdf - Elitist Non-dominated Sorting GA (NSGA-II)
     def getOffspring(self):
         fitnesses = []
-        print('Evaluating Initial Pop:\n [',end='')
+        print('Evaluating Initial Pop:\n [', end='')
         for i, chromosome in enumerate(self.population):
-            print('.',end='')
-            fitnesses.append(chromosome.fitness(self.fitnessModel))
+            print('.', end='')
+            fitnesses.append((chromosome.fitness(self.fitnessModel),chromosome))
         print(']')
-        # print(fitnesses)
 
         #Find Non-Dominated Front
         #   Rank By fronts
@@ -138,10 +139,10 @@ class Generation:
         dominatedRank = {}
         crowdingDistance = {}
 
-        for i, fit1 in enumerate(fitnesses):
+        for i, (fit1,chromosome) in enumerate(fitnesses):
             dominatedRank[i] = 0
             crowdingDistance[i] = 100
-            for fit2 in fitnesses:
+            for (fit2,chromosome) in fitnesses:
                 if (fit1 != fit2):
                     if (dominated(fit1, fit2)):
                         if (i in dominatedRank.keys()):
@@ -154,13 +155,11 @@ class Generation:
 
         tournamentPool = list(range((self.popSize)))
         selected = []
-        while tournamentPool:
-            selection1 = tournamentPool.pop(
-                random.randint(0,
-                               len(tournamentPool) - 1))
-            selection2 = tournamentPool.pop(
-                random.randint(0,
-                               len(tournamentPool) - 1))
+        while len(selected) < len(tournamentPool):
+            selection1 = tournamentPool[
+                np.random.randint(len(tournamentPool))]
+            selection2 = tournamentPool[
+                np.random.randint(len(tournamentPool))]
             if dominatedRank[selection1] < dominatedRank[selection2]:
                 selected.append(selection1)
             elif dominatedRank[selection1] == dominatedRank[selection2]:
@@ -174,41 +173,58 @@ class Generation:
         #Reproduction
         #Select two random
         #Select Random Crossover point for this generation
-        reproductionPool = list(range((self.popSize)))
+        reproductionPool = list(range(len(selected)))
         offSpring = []
         while reproductionPool:
-            chromosome1 = self.population[reproductionPool.pop(
-                random.randint(0,
-                               len(reproductionPool) - 1))]
-            chromosome2 = self.population[reproductionPool.pop(
-                random.randint(0,
-                               len(reproductionPool) - 1))]
-            crossoverPoint = random.randint(1, self.geneCount - 1)
+            chromosome1 = self.population[selected[reproductionPool.pop(
+                np.random.randint(len(reproductionPool)))]]
+            chromosome2 = self.population[selected[reproductionPool.pop(
+                np.random.randint(len(reproductionPool)))]]
 
-            offSpring.append(
-                Chromosome(
-                    self.geneCount, self.budget,
-                    chromosome1.getGenes()[:crossoverPoint] +
-                    chromosome2.getGenes()[crossoverPoint:]))
-            offSpring.append(
-                Chromosome(
-                    self.geneCount, self.budget,
-                    chromosome2.getGenes()[:crossoverPoint] +
-                    chromosome1.getGenes()[crossoverPoint:]))
+            #Maybe change to variable 'crossoverRate'
+            # crossoverPoint = random.randint(1, self.geneCount - 1)
+            crossoverPoint = int(self.crossoverRate * self.geneCount)
 
-        #Mutate a random gene at chance self.mutationRate
+            #Mutate a random gene at chance self.mutationRate
+            #As encoding does is not binary a bit switch mutation is not applicable.
+            #Therefore we will do a random reset of any genes that mutate, as our chromosomes are quite large we probably want to keep mutation rate fairly low
+            #Mutating by using the same random generation method as a new chromosome uses
+            mutations = (np.random.dirichlet(np.ones(self.geneCount),
+                                             size=1)[0]) * self.budget
+            mutations = [math.floor(x) for x in mutations]
+            offSpringGenes = chromosome1.getGenes(
+            )[:crossoverPoint] + chromosome2.getGenes()[crossoverPoint:]
+            offSpringGenes = [
+                mutations[i] if np.random.uniform() < self.mutationRate else x
+                for i, x in enumerate(offSpringGenes)
+            ]
+            offSpring.append(
+                Chromosome(self.geneCount, self.budget, offSpringGenes))
+
+            mutations = (np.random.dirichlet(np.ones(self.geneCount),
+                                             size=1)[0]) * self.budget
+            mutations = [math.floor(x) for x in mutations]
+
+            offSpringGenes = chromosome2.getGenes(
+            )[:crossoverPoint] + chromosome1.getGenes()[crossoverPoint:]
+            offSpringGenes = [
+                mutations[i] if np.random.uniform() < self.mutationRate else x
+                for i, x in enumerate(offSpringGenes)
+            ]
+            offSpring.append(
+                Chromosome(self.geneCount, self.budget, offSpringGenes))
 
         #Combine last gen and offspring into one set, re-sort and take top half as elitist principle
-        print('Evaluating Offspring:\n [',end='')
+        print('Evaluating Offspring:\n [', end='')
         for i, chromosome in enumerate(offSpring):
-            print('.',end='')
-            fitnesses.append(chromosome.fitness(self.fitnessModel))
+            print('.', end='')
+            fitnesses.append((chromosome.fitness(self.fitnessModel),chromosome))
         print(']')
         #Recalculate dominating rank and crowding distance for the combined offspring and original population set.
-        for i, fit1 in enumerate(fitnesses):
+        for i, (fit1,chromosome) in enumerate(fitnesses):
             dominatedRank[i] = 0
             crowdingDistance[i] = 100
-            for fit2 in fitnesses:
+            for (fit2,chromosome) in fitnesses:
                 if (fit1 != fit2):
                     if (dominated(fit1, fit2)):
                         if (i in dominatedRank.keys()):
@@ -216,7 +232,6 @@ class Generation:
                 #Calculate Crowding distance
                     crowdingDistance[i] = min(crowdingDistance[i],
                                               distance(fit1, fit2))
-
 
         #Sort by ranking & crowding distance
         print()
@@ -229,7 +244,8 @@ class Generation:
             newPopIndices = [x[0] for x in order if x[1] < splitRankNumber]
             #Get indicies of rank that needs to be sorted
             rankToSort = [x[0] for x in order if x[1] == splitRankNumber]
-            splitRankSorted = (sorted(rankToSort,reverse=True,
+            splitRankSorted = (sorted(rankToSort,
+                                      reverse=False,
                                       key=lambda item: crowdingDistance[item]))
             # print(splitRankSorted)
             i = 0
@@ -251,58 +267,97 @@ class Generation:
                 if index < self.popSize else offSpring[index - self.popSize]
                 for index in newPopIndices
             ]
-
+        topFitnesses = [fitness for i,fitness in enumerate(fitnesses) if dominatedRank[i] == 0]#fitnesses[order[0][0]] 
+        
+        # print(topFitnesses)
         #Return fitnesses of each resultant generation to plot evolution:
-        newGenFitnesses = [fitnesses[i] for i in newPopIndices]
-        return Generation(self.genNumber + 1, self.popSize,
-                          (self.geneCount, self.budget),self.fitnessModel, population=newPop),newGenFitnesses
+        newGenFitnesses = [fitnesses[i][0] for i in newPopIndices]
+        return Generation(self.genNumber + 1,
+                          self.popSize, (self.geneCount, self.budget),
+                          self.fitnessModel,
+                          population=newPop), newGenFitnesses,topFitnesses
 
 
 def dominated(fitness_a, fitness_b):
-    if ((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] < fitness_b[1]) or
-        ((fitness_a[0] < fitness_b[0]) and (fitness_a[1] <= fitness_b[1]))):
+    #Dominated if worse or equal to all objectives of b & is strictly worse than b in at least one objective
+    if (((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] <= fitness_b[1]) and
+         (fitness_a[2] <= fitness_b[2]) and (fitness_a[3] <= fitness_b[3]) and
+         (fitness_a[4] <= fitness_b[4])) and
+        ((fitness_a[0] < fitness_b[0]) or (fitness_a[1] < fitness_b[1]) or
+         (fitness_a[2] < fitness_b[2]) or (fitness_a[3] < fitness_b[3]) or
+         (fitness_a[4] < fitness_b[4]))):
         return True
+    # if ((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] < fitness_b[1]) or
+    #     ((fitness_a[0] < fitness_b[0]) and (fitness_a[1] <= fitness_b[1]))):
+    #     return True
     else:
         return False
 
 
 def distance(fitness_a, fitness_b):
-    a = np.array([fitness_a[0], fitness_a[1]])
-    b = np.array([fitness_b[0], fitness_b[1]])
+    a = np.array([fitness_a[0], fitness_a[1], fitness_a[2], fitness_a[3],fitness_a[4]])
+    b = np.array([fitness_b[0], fitness_b[1], fitness_b[2], fitness_b[3],fitness_b[4]])
     return np.linalg.norm(a - b)
 
 
 #Based upon: https://www.sciencedirect.com/science/article/pii/S0020025515007276
 def main():
     global allocation_to_location
-    # global location_to_expected_weather
     allocation_to_location = pd.read_csv('../../Data//locations.csv').drop(
         'capacity', axis=1)
+    if len(sys.argv) > 1:
+        instance(int(sys.argv[-1]))
+    else:
+        instance(0)
+
+def instance(seedValue):
+    np.random.seed(seedValue)
     predictor = pred.initaliseModel()
-    max_generations = 25
+    max_generations = 100
+    popSize = 100
     chromosomeParameters = (56, 75)
-    gen0 = Generation(0, 50, chromosomeParameters, predictor)
-    gen_i,genfitness = gen0.getOffspring()
+    gen0 = Generation(0, popSize, chromosomeParameters, predictor)
+    gen_i, genfitness,topFitness = gen0.getOffspring()
     history = []
-    fig,ax = plt.subplots()
-    for i in range(0,max_generations):
-        print('Generation',i+1,':')
-        history.append((i+1,genfitness))
-        x_P = [x[0] for x in genfitness]
-        y_P = [x[1] for x in genfitness]
-        ax.scatter(x_P, y_P, alpha=(1/max_generations)*(i+1),marker='x',color='blue')
-        gen_i,genfitness = gen_i.getOffspring()
-    #Displat Final Generation:
-    x_P = [x[0] for x in genfitness]
-    y_P = [x[1] for x in genfitness]
-    ax.scatter(x_P, y_P, alpha=(1/max_generations)*(i+1),marker='x',color='green')
+    for i in range(0, max_generations):
+        history.append((i, genfitness,topFitness))
+        print('Generation', i + 1, ':')
+        gen_i, genfitness,topFitness = gen_i.getOffspring()
+    history.append((i, genfitness,topFitness))
 
-    print(gen_i.getPopulationString)
+    f = open('Allocations.txt','a')
+    f.write("Seed = {} \nPopulation Size = {} \nGenerations = {} \n".format(seedValue,popSize,max_generations))
+    for fit in topFitness:
+        f.write('Fitness = {}\nAllocation:\n{}\n'.format(fit[0],fit[1].getGenes()))
+    f.close()
 
+    #Plot Each objective against generations
+    
+    fig, axs = plt.subplots(1,5,constrained_layout=True,figsize = (20,10))
+    fig.suptitle('Mean of Top Ranking Allocations')
+    # axs.set
+    axs[0].set_ylabel('Mean Load Factor')
+    axs[1].set_ylabel('Variance')
+    axs[2].set_ylabel('Max Output')
+    axs[3].set_ylabel('Min Output')
+    axs[4].set_ylabel('Budget Allocated')
+    #Plot Mean of top fitnesses
+    for i in range(5):
+        axs[i].set_xlabel('Generations')
+        temp = [top for (_,_,top) in history]
+        y = []
+        for tops in temp:
+            sum = 0
+            for top in tops:
+                sum += top[0][i]
+            y.append(sum/len(tops))
+        axs[i].plot(y)
+    # print(gen_i.getPopulationString())
+    plt.savefig('../../Data/Results/Seed '+str(seedValue)+'.png')
     plt.show()
-
-# y_P = [x[1
+    
 
 
 if __name__ == "__main__":
     main()
+    
