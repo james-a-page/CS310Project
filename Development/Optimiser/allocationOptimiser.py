@@ -4,6 +4,7 @@ import numpy as np
 import math
 from scipy.stats import iqr
 from matplotlib import pyplot as plt
+import seaborn as sns
 import sys
 global allocation_to_location
 
@@ -73,7 +74,7 @@ class Chromosome:
         try:
             meanPredOutput = predictionList.mean()  #total / sum(self.genes)
         except:
-            return (0, -1, 0, 0, 0)
+            return (0, -1, 0, 0)
 
         # F2 = negative variance of allocations (so we can minimise the variance)
         varianceObj = -1 * np.var(predictionList)
@@ -84,13 +85,12 @@ class Chromosome:
         #F4 = Minimum output
         minOutputObj = predictionList.min()
 
-        #F5 = Amount of budget used (we want to be as close to maximal budget use without going over budget)
-        budgetUse = sum(self.genes)
+        #F5 = Meanoutput * budget allocated
+        predOutput = sum(self.genes) * meanPredOutput
 
-        #Returns Objective (F1,F2,F3,F4,F5)
+        #Returns Objective (F5,F2,F3,F4)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
-        return (meanPredOutput, varianceObj, maxOutputObj, minOutputObj,
-                budgetUse)
+        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
 
 
 class Generation:
@@ -129,7 +129,8 @@ class Generation:
         print('Evaluating Initial Pop:\n [', end='')
         for i, chromosome in enumerate(self.population):
             print('.', end='')
-            fitnesses.append((chromosome.fitness(self.fitnessModel),chromosome))
+            fitnesses.append(
+                (chromosome.fitness(self.fitnessModel), chromosome))
         print(']')
 
         #Find Non-Dominated Front
@@ -139,10 +140,10 @@ class Generation:
         dominatedRank = {}
         crowdingDistance = {}
 
-        for i, (fit1,chromosome) in enumerate(fitnesses):
+        for i, (fit1, chromosome) in enumerate(fitnesses):
             dominatedRank[i] = 0
             crowdingDistance[i] = 100
-            for (fit2,chromosome) in fitnesses:
+            for (fit2, chromosome) in fitnesses:
                 if (fit1 != fit2):
                     if (dominated(fit1, fit2)):
                         if (i in dominatedRank.keys()):
@@ -156,10 +157,8 @@ class Generation:
         tournamentPool = list(range((self.popSize)))
         selected = []
         while len(selected) < len(tournamentPool):
-            selection1 = tournamentPool[
-                np.random.randint(len(tournamentPool))]
-            selection2 = tournamentPool[
-                np.random.randint(len(tournamentPool))]
+            selection1 = tournamentPool[np.random.randint(len(tournamentPool))]
+            selection2 = tournamentPool[np.random.randint(len(tournamentPool))]
             if dominatedRank[selection1] < dominatedRank[selection2]:
                 selected.append(selection1)
             elif dominatedRank[selection1] == dominatedRank[selection2]:
@@ -218,13 +217,14 @@ class Generation:
         print('Evaluating Offspring:\n [', end='')
         for i, chromosome in enumerate(offSpring):
             print('.', end='')
-            fitnesses.append((chromosome.fitness(self.fitnessModel),chromosome))
+            fitnesses.append(
+                (chromosome.fitness(self.fitnessModel), chromosome))
         print(']')
         #Recalculate dominating rank and crowding distance for the combined offspring and original population set.
-        for i, (fit1,chromosome) in enumerate(fitnesses):
+        for i, (fit1, chromosome) in enumerate(fitnesses):
             dominatedRank[i] = 0
             crowdingDistance[i] = 100
-            for (fit2,chromosome) in fitnesses:
+            for (fit2, chromosome) in fitnesses:
                 if (fit1 != fit2):
                     if (dominated(fit1, fit2)):
                         if (i in dominatedRank.keys()):
@@ -267,25 +267,26 @@ class Generation:
                 if index < self.popSize else offSpring[index - self.popSize]
                 for index in newPopIndices
             ]
-        topFitnesses = [fitness for i,fitness in enumerate(fitnesses) if dominatedRank[i] == 0]#fitnesses[order[0][0]] 
-        
+        topFitnesses = [
+            fitness for i, fitness in enumerate(fitnesses)
+            if dominatedRank[i] == 0
+        ]  #fitnesses[order[0][0]]
+
         # print(topFitnesses)
         #Return fitnesses of each resultant generation to plot evolution:
         newGenFitnesses = [fitnesses[i][0] for i in newPopIndices]
         return Generation(self.genNumber + 1,
                           self.popSize, (self.geneCount, self.budget),
                           self.fitnessModel,
-                          population=newPop), newGenFitnesses,topFitnesses
+                          population=newPop), newGenFitnesses, topFitnesses
 
 
 def dominated(fitness_a, fitness_b):
     #Dominated if worse or equal to all objectives of b & is strictly worse than b in at least one objective
     if (((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] <= fitness_b[1]) and
-         (fitness_a[2] <= fitness_b[2]) and (fitness_a[3] <= fitness_b[3]) and
-         (fitness_a[4] <= fitness_b[4])) and
+         (fitness_a[2] <= fitness_b[2]) and (fitness_a[3] <= fitness_b[3])) and
         ((fitness_a[0] < fitness_b[0]) or (fitness_a[1] < fitness_b[1]) or
-         (fitness_a[2] < fitness_b[2]) or (fitness_a[3] < fitness_b[3]) or
-         (fitness_a[4] < fitness_b[4]))):
+         (fitness_a[2] < fitness_b[2]) or (fitness_a[3] < fitness_b[3]))):
         return True
     # if ((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] < fitness_b[1]) or
     #     ((fitness_a[0] < fitness_b[0]) and (fitness_a[1] <= fitness_b[1]))):
@@ -295,8 +296,10 @@ def dominated(fitness_a, fitness_b):
 
 
 def distance(fitness_a, fitness_b):
-    a = np.array([fitness_a[0], fitness_a[1], fitness_a[2], fitness_a[3],fitness_a[4]])
-    b = np.array([fitness_b[0], fitness_b[1], fitness_b[2], fitness_b[3],fitness_b[4]])
+    a = np.array([fitness_a[0], fitness_a[1], fitness_a[2],
+                  fitness_a[3]])  #,fitness_a[4]])
+    b = np.array([fitness_b[0], fitness_b[1], fitness_b[2],
+                  fitness_b[3]])  #,fitness_b[4]])
     return np.linalg.norm(a - b)
 
 
@@ -310,54 +313,56 @@ def main():
     else:
         instance(0)
 
+
 def instance(seedValue):
     np.random.seed(seedValue)
     predictor = pred.initaliseModel()
-    max_generations = 100
+    max_generations = 150
     popSize = 100
     chromosomeParameters = (56, 75)
     gen0 = Generation(0, popSize, chromosomeParameters, predictor)
-    gen_i, genfitness,topFitness = gen0.getOffspring()
+    gen_i, genfitness, topFitness = gen0.getOffspring()
     history = []
     for i in range(0, max_generations):
-        history.append((i, genfitness,topFitness))
+        history.append((i, genfitness, topFitness))
         print('Generation', i + 1, ':')
-        gen_i, genfitness,topFitness = gen_i.getOffspring()
-    history.append((i, genfitness,topFitness))
+        gen_i, genfitness, topFitness = gen_i.getOffspring()
+    history.append((i, genfitness, topFitness))
 
-    f = open('Allocations.txt','a')
-    f.write("Seed = {} \nPopulation Size = {} \nGenerations = {} \n".format(seedValue,popSize,max_generations))
+    f = open('AllocationsV2.txt', 'a')
+    f.write(
+        "\n\nSeed = {} \nPopulation Size = {} \nGenerations = {} \n".format(
+            seedValue, popSize, max_generations))
     for fit in topFitness:
-        f.write('Fitness = {}\nAllocation:\n{}\n'.format(fit[0],fit[1].getGenes()))
+        f.write('Fitness = {}\nAllocation:\n{}\n'.format(
+            fit[0], fit[1].getGenes()))
     f.close()
 
     #Plot Each objective against generations
-    
-    fig, axs = plt.subplots(1,5,constrained_layout=True,figsize = (20,10))
+    sns.set()
+    fig, axs = plt.subplots(1, 4, constrained_layout=True, figsize=(20, 10))
     fig.suptitle('Mean of Top Ranking Allocations')
     # axs.set
-    axs[0].set_ylabel('Mean Load Factor')
+    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
     axs[1].set_ylabel('Variance')
     axs[2].set_ylabel('Max Output')
     axs[3].set_ylabel('Min Output')
-    axs[4].set_ylabel('Budget Allocated')
+    # axs[4].set_ylabel('Budget Allocated')
     #Plot Mean of top fitnesses
-    for i in range(5):
+    for i in range(4):
         axs[i].set_xlabel('Generations')
-        temp = [top for (_,_,top) in history]
+        temp = [top for (_, _, top) in history]
         y = []
         for tops in temp:
             sum = 0
             for top in tops:
                 sum += top[0][i]
-            y.append(sum/len(tops))
+            y.append(sum / len(tops))
         axs[i].plot(y)
     # print(gen_i.getPopulationString())
-    plt.savefig('../../Data/Results/Seed '+str(seedValue)+'.png')
+    plt.savefig('../../Data/ResultsV2/Seed ' + str(seedValue) + '.png')
     plt.show()
-    
 
 
 if __name__ == "__main__":
     main()
-    
