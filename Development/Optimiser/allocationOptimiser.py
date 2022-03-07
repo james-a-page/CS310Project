@@ -29,7 +29,7 @@ class Chromosome:
 
         #Check doesn't break constraints
         if sum(self.genes) > self.budget:
-            return (0, -1, 0, 0, 0)
+            return (0, -1, 0, 0)
 
         #Define Inital values
         predictionList = np.array([])
@@ -77,16 +77,28 @@ class Chromosome:
             return (0, -1, 0, 0)
 
         # F2 = negative variance of allocations (so we can minimise the variance)
-        varianceObj = -1 * np.var(predictionList)
+        try:
+            varianceObj = -1 * np.var(predictionList)
+        except:
+            return (0, -1, 0, 0)
 
         #F3 = Maximum output
-        maxOutputObj = predictionList.max()
+        try:
+            maxOutputObj = predictionList.max()
+        except:
+            return (0, -1, 0, 0)
 
         #F4 = Minimum output
-        minOutputObj = predictionList.min()
+        try:
+            minOutputObj = predictionList.min()
+        except:
+            return (0, -1, 0, 0)
 
         #F5 = Meanoutput * budget allocated
-        predOutput = sum(self.genes) * meanPredOutput
+        try:
+            predOutput = sum(self.genes) * meanPredOutput
+        except:
+            return (0, -1, 0, 0)
 
         #Returns Objective (F5,F2,F3,F4)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
@@ -100,8 +112,8 @@ class Generation:
                  size,
                  parameters,
                  fitnessModel,
-                 mutationRate=0.2,
-                 crossoverRate=0.7,
+                 mutationRate=0.1,
+                 crossoverRate=0.65,
                  population=[]):
         self.genNumber = genNumber
         self.popSize = size
@@ -317,7 +329,7 @@ def main():
 def instance(seedValue):
     np.random.seed(seedValue)
     predictor = pred.initaliseModel()
-    max_generations = 150
+    max_generations = 100
     popSize = 100
     chromosomeParameters = (56, 75)
     gen0 = Generation(0, popSize, chromosomeParameters, predictor)
