@@ -102,7 +102,7 @@ class Chromosome:
 
         #Returns Objective (F5,F2,F3,F4)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
-        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
+        return (meanPredOutput, varianceObj, maxOutputObj, minOutputObj)
 
 
 class Generation:
@@ -355,7 +355,8 @@ def instance(seedValue):
     fig, axs = plt.subplots(1, 4, constrained_layout=True, figsize=(20, 10))
     fig.suptitle('Mean of Top Ranking Allocations')
     # axs.set
-    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
+    # axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
+    axs[0].set_ylabel('Mean Load Factor')
     axs[1].set_ylabel('Variance')
     axs[2].set_ylabel('Max Output')
     axs[3].set_ylabel('Min Output')
