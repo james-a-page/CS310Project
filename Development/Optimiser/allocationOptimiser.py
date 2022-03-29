@@ -353,7 +353,7 @@ def instance(seedValue):
     #Plot Each objective against generations
     sns.set()
     fig, axs = plt.subplots(1, 4, constrained_layout=True, figsize=(20, 10))
-    fig.suptitle('Mean of Top Ranking Allocations')
+    fig.suptitle('Mean of Top Ranking Allocations') 
     # axs.set
     # axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
     axs[0].set_ylabel('Mean Load Factor')
