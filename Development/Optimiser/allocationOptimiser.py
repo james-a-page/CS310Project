@@ -95,6 +95,8 @@ class Chromosome:
             return (0, -1, 0, 0)
 
         #F5 = Meanoutput * budget allocated
+<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
+<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
         try:
             predOutput = sum(self.genes) * meanPredOutput
         except:
@@ -103,6 +105,20 @@ class Chromosome:
         #Returns Objective (F5,F2,F3,F4)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
         return (meanPredOutput, varianceObj, maxOutputObj, minOutputObj)
+=======
+        predOutput = sum(self.genes) * meanPredOutput
+
+        #Returns Objective (F5,F2,F3,F4)
+        # save.to_csv('../../Data/PreComputedPredictions.csv')
+        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
+>>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
+=======
+        predOutput = sum(self.genes) * meanPredOutput
+
+        #Returns Objective (F5,F2,F3,F4)
+        # save.to_csv('../../Data/PreComputedPredictions.csv')
+        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
+>>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
 
 
 class Generation:
@@ -329,7 +345,7 @@ def main():
 def instance(seedValue):
     np.random.seed(seedValue)
     predictor = pred.initaliseModel()
-    max_generations = 100
+    max_generations = 150
     popSize = 100
     chromosomeParameters = (56, 75)
     gen0 = Generation(0, popSize, chromosomeParameters, predictor)
@@ -353,10 +369,22 @@ def instance(seedValue):
     #Plot Each objective against generations
     sns.set()
     fig, axs = plt.subplots(1, 4, constrained_layout=True, figsize=(20, 10))
-    fig.suptitle('Mean of Top Ranking Allocations')
+<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
+<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
+    fig.suptitle('Mean of Top Ranking Allocations') 
     # axs.set
     # axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
     axs[0].set_ylabel('Mean Load Factor')
+=======
+    fig.suptitle('Mean of Top Ranking Allocations')
+    # axs.set
+    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
+>>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
+=======
+    fig.suptitle('Mean of Top Ranking Allocations')
+    # axs.set
+    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
+>>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
     axs[1].set_ylabel('Variance')
     axs[2].set_ylabel('Max Output')
     axs[3].set_ylabel('Min Output')
