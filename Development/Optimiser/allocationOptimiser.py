@@ -93,32 +93,9 @@ class Chromosome:
             minOutputObj = predictionList.min()
         except:
             return (0, -1, 0, 0)
-
-        #F5 = Meanoutput * budget allocated
-<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
-<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
-        try:
-            predOutput = sum(self.genes) * meanPredOutput
-        except:
-            return (0, -1, 0, 0)
-
-        #Returns Objective (F5,F2,F3,F4)
+        #Returns Objective (F1,F2,F3,F4)
         # save.to_csv('../../Data/PreComputedPredictions.csv')
         return (meanPredOutput, varianceObj, maxOutputObj, minOutputObj)
-=======
-        predOutput = sum(self.genes) * meanPredOutput
-
-        #Returns Objective (F5,F2,F3,F4)
-        # save.to_csv('../../Data/PreComputedPredictions.csv')
-        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
->>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
-=======
-        predOutput = sum(self.genes) * meanPredOutput
-
-        #Returns Objective (F5,F2,F3,F4)
-        # save.to_csv('../../Data/PreComputedPredictions.csv')
-        return (predOutput, varianceObj, maxOutputObj, minOutputObj)
->>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
 
 
 class Generation:
@@ -164,7 +141,6 @@ class Generation:
         #Find Non-Dominated Front
         #   Rank By fronts
         #   Rank by crowding distance
-
         dominatedRank = {}
         crowdingDistance = {}
 
@@ -181,12 +157,11 @@ class Generation:
                                               distance(fit1, fit2))
 
         #Random Tournament Selection
-
         tournamentPool = list(range((self.popSize)))
         selected = []
         while len(selected) < len(tournamentPool):
-            selection1 = tournamentPool[np.random.randint(len(tournamentPool))]
-            selection2 = tournamentPool[np.random.randint(len(tournamentPool))]
+            selection1 = tournamentPool[(np.random.randint(len(tournamentPool)))]
+            selection2 = tournamentPool[(np.random.randint(len(tournamentPool)))]
             if dominatedRank[selection1] < dominatedRank[selection2]:
                 selected.append(selection1)
             elif dominatedRank[selection1] == dominatedRank[selection2]:
@@ -197,6 +172,7 @@ class Generation:
                     selected.append(selection2)
             else:
                 selected.append(selection2)
+        
         #Reproduction
         #Select two random
         #Select Random Crossover point for this generation
@@ -275,7 +251,6 @@ class Generation:
             splitRankSorted = (sorted(rankToSort,
                                       reverse=False,
                                       key=lambda item: crowdingDistance[item]))
-            # print(splitRankSorted)
             i = 0
             while len(newPopIndices) < cutoffPoint:
                 newPopIndices.append(splitRankSorted[i])
@@ -295,12 +270,12 @@ class Generation:
                 if index < self.popSize else offSpring[index - self.popSize]
                 for index in newPopIndices
             ]
+
         topFitnesses = [
             fitness for i, fitness in enumerate(fitnesses)
             if dominatedRank[i] == 0
-        ]  #fitnesses[order[0][0]]
+        ] 
 
-        # print(topFitnesses)
         #Return fitnesses of each resultant generation to plot evolution:
         newGenFitnesses = [fitnesses[i][0] for i in newPopIndices]
         return Generation(self.genNumber + 1,
@@ -316,9 +291,6 @@ def dominated(fitness_a, fitness_b):
         ((fitness_a[0] < fitness_b[0]) or (fitness_a[1] < fitness_b[1]) or
          (fitness_a[2] < fitness_b[2]) or (fitness_a[3] < fitness_b[3]))):
         return True
-    # if ((fitness_a[0] <= fitness_b[0]) and (fitness_a[1] < fitness_b[1]) or
-    #     ((fitness_a[0] < fitness_b[0]) and (fitness_a[1] <= fitness_b[1]))):
-    #     return True
     else:
         return False
 
@@ -339,7 +311,7 @@ def main():
     if len(sys.argv) > 1:
         instance(int(sys.argv[-1]))
     else:
-        instance(0)
+        instance(2)
 
 
 def instance(seedValue):
@@ -369,26 +341,12 @@ def instance(seedValue):
     #Plot Each objective against generations
     sns.set()
     fig, axs = plt.subplots(1, 4, constrained_layout=True, figsize=(20, 10))
-<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
-<<<<<<< Updated upstream:Development/Optimiser/allocationOptimiser.py
-    fig.suptitle('Mean of Top Ranking Allocations') 
-    # axs.set
-    # axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
+
+    fig.suptitle('Mean of Top Ranking Allocations')
     axs[0].set_ylabel('Mean Load Factor')
-=======
-    fig.suptitle('Mean of Top Ranking Allocations')
-    # axs.set
-    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
->>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
-=======
-    fig.suptitle('Mean of Top Ranking Allocations')
-    # axs.set
-    axs[0].set_ylabel('Mean Load Factor x Budget Allocated')
->>>>>>> Stashed changes:Development/Optimiser/extremalOptimiser.py
     axs[1].set_ylabel('Variance')
     axs[2].set_ylabel('Max Output')
     axs[3].set_ylabel('Min Output')
-    # axs[4].set_ylabel('Budget Allocated')
     #Plot Mean of top fitnesses
     for i in range(4):
         axs[i].set_xlabel('Generations')
@@ -400,7 +358,6 @@ def instance(seedValue):
                 sum += top[0][i]
             y.append(sum / len(tops))
         axs[i].plot(y)
-    # print(gen_i.getPopulationString())
     plt.savefig('../../Data/ResultsV2/Seed ' + str(seedValue) + '.png')
     plt.show()
 
